@@ -1,0 +1,91 @@
+name: Build and Push Docker Image
+
+# 触发条件：
+#   1) push 到 main 分支      -> 构建并推送 latest + main
+#   2) 发布 Release(v2.0.0)   -> 构建并推送 版本号 + latest
+#   3) 手动触发（可指定标签）
+#
+# 需要在仓库 Settings -> Secrets and variables -> Actions 里加两个 secret：
+#   DOCKERHUB_USERNAME  你的 Docker Hub 用户名
+#   DOCKERHUB_TOKEN     在 Docker Hub 生成的 Access Token（Read & Write 就够）
+on:
+  push:
+    branches: [ "main" ]
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要打的标签（例如 2.0.0）"
+        required: false
+
+env:
+  IMAGE_NAME: pingvin-collect
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 拉取代码
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      # 2. 校验补丁文件可读
+      #    补丁是靠替换编译产物生效的，权限不对（比如 600）会让主站启动后 500，
+      #    在 CI 阶段就拦住，别等部署完才发现
+      - name: 校验补丁文件可读
+        run: |
+          bad=$(find patch -type f ! -perm -044 2>/dev/null || true)
+          if [ -n "$bad" ]; then
+            echo "::error::以下补丁文件不可读，先 chmod 644：$bad"
+            exit 1
+          fi
+          test -s patch/6009.js
+          test -s inbox/app.py
+          echo "补丁文件权限正常"
+
+      # 3. 设置 QEMU（支持 ARM64，给 NAS 用必须加）
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 4. 设置 Docker Buildx（构建工具）
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 5. 登录 Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 6. 取本次要用的标签
+      #    Release 触发取 release 的 tag，手动触发取输入，push 触发取 main
+      - name: 取标签
+        id: tag
+        run: echo "value=${{ github.event.inputs.tag || github.event.release.tag_name || 'main' }}" >> $GITHUB_OUTPUT
+
+      # 7. 构建并推送
+      #    注意：Dockerfile 里的上游基础镜像版本是钉死的（补丁是按那个版本的
+      #    编译产物改的），升级上游版本时必须同步更新 patch/ 里的文件
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          # 多架构：x86 服务器/NAS 用 amd64，ARM 设备用 arm64
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.value }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 8. 把结果打到日志里，方便核对
+      - name: Show result
+        run: |
+          echo "已推送：${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.value }}"
+          echo "digest：${{ steps.build.outputs.digest }}"

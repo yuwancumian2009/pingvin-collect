@@ -1,0 +1,39 @@
+BSD 2-Clause License
+
+Copyright (c) 2022, Elias Schneider
+Copyright (c) 2025, smp46  (Pingvin Share X fork)
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+---
+
+## 本仓库新增部分（收件箱服务、补丁、构建脚本）
+
+同样以 BSD 2-Clause 授权，版权归本仓库贡献者所有。
+
+## 上游
+
+本镜像是 [smp46/pingvin-share-x](https://github.com/smp46/pingvin-share-x) 的衍生构建，
+后者是已归档的 [stonith404/pingvin-share](https://github.com/stonith404/pingvin-share)
+的维护中分支。原始版权归 Elias Schneider 所有。镜像中包含的上游代码遵循上述 BSD 2-Clause
+许可；本仓库仅新增补丁文件、收件箱服务与构建配置，未修改上游源代码仓库。

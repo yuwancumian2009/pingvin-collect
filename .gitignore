@@ -1,0 +1,10 @@
+# 运行时数据，不进仓库
+data/
+state/
+cache/
+collect/
+*.tar.gz
+*.tar
+
+# 本地配置
+.env

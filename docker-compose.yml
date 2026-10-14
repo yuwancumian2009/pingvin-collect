@@ -1,0 +1,26 @@
+services:
+  pingvin-collect:
+    # 镜像已发布在 Docker Hub，直接 pull 即可：yuwancumian2009/pingvin-collect
+    # 想用别的名字（比如自己构建的）就在 .env 里设 IMAGE=
+    image: ${IMAGE:-yuwancumian2009/pingvin-collect:latest}
+    container_name: pingvin-collect
+    restart: unless-stopped
+    ports:
+      # 左边是 NAS 上对外开放的端口，右边是容器内的（别改右边）
+      - "${HTTP_PORT:-8080}:3000"
+    environment:
+      - TZ=${TZ:-Asia/Shanghai}
+      - TRUST_PROXY=true
+      # 容器内以这个用户身份跑；挂进来的目录要归它所有
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+    volumes:
+      # 数据库 + 上传的文件本体（备份这个就够）
+      - ./data:/opt/app/backend/data
+      # 收件箱自己的记录：归档清单、每个链接的保存目录配置
+      - ./state:/state
+      # 缩略图缓存
+      - ./cache:/cache
+      # 收集到的文件落这里。左边可以换成 NAS 上的共享目录
+      # 例：COLLECT_DIR=/volume1/photo/收件
+      - "${COLLECT_DIR:-./collect}:/collect"
